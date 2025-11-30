@@ -2,10 +2,6 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ChevronLeft } from 'lucide-react';
-
-// ISR: Régénère la page toutes les heures
-export const revalidate = 3600;
-
 import { Button } from '@/components/ui/button';
 import { ScrollToTop } from '@/components/ui/scroll-to-top';
 import { TagList } from '@/components/ui/tag-list';
@@ -17,6 +13,9 @@ import { SiteFooter } from '@/components/layout/site-footer';
 import dataService from '@/lib/data';
 import { formatDateFr } from '@/lib/utils';
 import type { Article } from '@/types';
+
+// ISR: Régénère la page toutes les heures
+export const revalidate = 3600;
 
 interface ArticlePageProps {
   params: Promise<{
@@ -52,9 +51,22 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
     };
   }
 
+  const title = article.metaTitle || article.title;
+  const description = article.metaDescription || article.description;
+
   return {
-    title: article.metaTitle || article.title,
-    description: article.metaDescription || article.description,
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: 'article',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+    },
   };
 }
 

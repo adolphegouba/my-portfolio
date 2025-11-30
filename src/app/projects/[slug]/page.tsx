@@ -3,10 +3,6 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ChevronLeft, ExternalLink, FolderGit2, Globe, FileText } from 'lucide-react';
 import Image from 'next/image';
-
-// ISR: Régénère la page toutes les heures
-export const revalidate = 3600;
-
 import { Markdown } from '@/components/markdown/markdown';
 import { ImageZoom } from '@/components/markdown/image-zoom';
 import { Button } from '@/components/ui/button';
@@ -18,6 +14,9 @@ import { SiteFooter } from '@/components/layout/site-footer';
 import type { GalleryItem, ProjectLink, Project } from '@/types';
 import dataService from '@/lib/data';
 import { formatProjectDateRange } from '@/lib/utils';
+
+// ISR: Régénère la page toutes les heures
+export const revalidate = 3600;
 
 interface ProjectPageProps {
   params: Promise<{
@@ -54,9 +53,44 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<Me
     };
   }
 
+  const title = project.title;
+  const description = project.summary;
+
+  // Préparation des métadonnées OpenGraph et Twitter de base
+  const openGraph: Metadata['openGraph'] = {
+    title,
+    description,
+    type: 'article',
+  };
+
+  const twitter: Metadata['twitter'] = {
+    card: 'summary_large_image',
+    title,
+    description,
+  };
+
+  // Gestion explicite du média de couverture (image ou vidéo)
+  if (project.coverMedia && project.coverMedia.url) {
+    if (project.coverMedia.type === 'video') {
+      // Si c'est une vidéo, on l'ajoute aux métadonnées OpenGraph
+      openGraph.videos = [{ url: project.coverMedia.url }];
+      // Pour Twitter, il n'y a pas de support direct équivalent à og:video.
+      // On se fie donc à l'image de fallback définie dans le layout global.
+    } else {
+      // Si c'est une image, on l'ajoute à OpenGraph et Twitter
+      const imageUrl = project.coverMedia.url;
+      openGraph.images = [{ url: imageUrl }];
+      twitter.images = [imageUrl];
+    }
+  }
+  // S'il n'y a pas de coverMedia, les champs `images` ou `videos` ne sont pas définis.
+  // Next.js utilisera alors correctement les métadonnées de fallback du layout racine.
+
   return {
-    title: project.title,
-    description: project.summary,
+    title,
+    description,
+    openGraph,
+    twitter,
   };
 }
 
