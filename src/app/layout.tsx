@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Analytics } from "@vercel/analytics/next"
 import { Geist, Geist_Mono } from 'next/font/google';
 import { Providers } from '@/components/providers';
 import { SiteHeader } from '@/components/layout/site-header';
@@ -61,6 +62,7 @@ export default async function RootLayout({
             </Providers>
           </GlobalDataProvider>
         </div>
+        <Analytics />
       </body>
     </html>
   );
